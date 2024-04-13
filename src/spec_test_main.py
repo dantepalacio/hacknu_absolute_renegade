@@ -17,7 +17,7 @@ conversation = ConversationChain(
 )
  
 
-for _ in range(10):
+for _ in range(15):
     query = input('Enter query: ')
     # conversation.predict(input=query)
     conversation.invoke({'input':query})
