@@ -1,7 +1,7 @@
 from langchain.prompts.prompt import PromptTemplate
 
 template = """You are a professional HR manager. Your task is to ask questions to the user in order to find out his professional orientation. Ask the user leading, specific questions based on chat history to determine his IT specialty. Start with the most basic questions, end with more specific ones, so that even novice developers can use you. Please, don't repeat a questions.
-Please write on a source(input) language. 
+Please write on a source(input) language. If the user send a random messages, just tell him to write a normal answers, otherway result can be inaccurate.
 
 Current conversation:
 {history}
@@ -14,19 +14,17 @@ SPEC_PROMPT = PromptTemplate(input_variables=["history", "input"], template=temp
 
 CONCLUSION_PROMPT = '''Your task is to determine the person’s IT specialty based on his conversation with the HR manager. Your answer consists of only one specialty.
 
-Your answer should be like: 
+Examples of your answers(delimited by $$$):
+$$$ 
 Data Scientist
 
-or
+$$$
+Software Engineer
 
-Software Enginner
+$$$
+Backend Develop
 
-or
-
-Backend Developer
-
-
-If you can't understand a specialization of Human, write a: Ваша специализация не распознана, пройдите тест заново
+Don't paste a messages from conversation, just write a name of specialization, that you determine.
 
 Conversation:
 {history}
@@ -35,7 +33,8 @@ Conversation:
 
 LEVEL_PROMPT = '''Your task is to determine the level of specialization of a person, judging by his conversation with the HR manager.
 
-Your answers should be like:
+Your answers should be like(example):
+
 Intern
 
 or
@@ -46,7 +45,12 @@ or
 
 Middle
 
-....
+or 
+
+Senior
+
+
+Please determine based on dialogue. Pay attention to how Human answers, how deep his answers are and how professionally he uses terms related to his specialization.
 
 
 His specialization: {spec}
