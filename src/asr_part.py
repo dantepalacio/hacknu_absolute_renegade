@@ -1,9 +1,9 @@
-from utils.load_openai_client import *
+from utils.load_openai_client import client
 
-audio_folder = 'audios/'
+audio_folder = '../audios/'
 
 def transcript_text(audio_file_name):
-    audio_file= open(f"{audio_file_name}", "rb")
+    audio_file= open(f"{audio_folder}{audio_file_name}", "rb")
     transcription = client.audio.transcriptions.create(
     model="whisper-1", 
     file=audio_file
@@ -11,4 +11,4 @@ def transcript_text(audio_file_name):
     print(transcription.text)
 
 if __name__ == '__main__':
-    transcript_text('dias.ogg')
+    transcript_text('dias.mp3')
