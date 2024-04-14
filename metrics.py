@@ -1,6 +1,34 @@
 from sklearn.metrics import mean_squared_error, mean_absolute_error, mean_absolute_percentage_error
 from scipy.stats import pearsonr
 from sklearn.metrics import r2_score
+import json
+import numpy as np
+
+def getJsonMetrics(y_data, y_pred): 
+    mse = mean_squared_error(y_data, y_pred)
+    mae = mean_absolute_error(y_data, y_pred)
+    corr_coeff, _ = pearsonr(y_data.flatten(), y_pred)
+    r2 = r2_score(y_data, y_pred)
+
+    mape = None
+    # Calculate MAPE if there are no zeros in y_data
+    if not (y_data == 0).any():
+        absolute_percentage_errors = np.abs((y_data - y_pred) / y_data)
+        mape = np.mean(absolute_percentage_errors) * 100
+
+    return {
+        "MSE": mse,
+        "MAE": mae,
+        "MAPE": mape,
+        "Correlation Coefficient": corr_coeff,
+        "R^2": r2
+    }
+
+def metrics_to_json(metrics):
+    return json.dumps(metrics)
+
+def json_to_metrics(json_str):
+    return json.loads(json_str)
 
 def getMetrics(y_data, y_pred): 
     mse = mean_squared_error(y_data, y_pred)

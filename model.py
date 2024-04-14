@@ -7,6 +7,10 @@ import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
 from metrics import *
+from data_visualize import *
+from io import BytesIO
+from PIL import Image
+import io
 
 class LSTM(nn.Module):
     def __init__(self, input_size=1, hidden_layer_size=100, output_size=1):
@@ -26,10 +30,10 @@ class LSTM(nn.Module):
         self.eval()
         preds = []
         dataframe_tensor = torch.FloatTensor(dataframe).view(-1, 1)
-        test_input = dataframe_tensor[-seq_length:].view(-1, 1)
+        test_input = dataframe_tensor[-sequence_length:].view(-1, 1)
         with torch.no_grad():
             for i in range(future):
-                pred = model(test_input[-seq_length:].view(-1, 1))
+                pred = self(test_input[-sequence_length:].view(-1, 1))
                 preds.append(pred.item())
                 test_input = torch.cat((test_input, pred.view(-1, 1)))
         return preds
@@ -45,7 +49,7 @@ class LSTM(nn.Module):
         self.load_state_dict(checkpoint['state_dict'])
         print("Model loaded")
 
-def train(model, dataframe, seq_length=300, batch_size=20, epochs=200, lr=1e-3):
+def train(model, dataframe, seq_length=300, batch_size=20, epochs=200, lr=1e-3, save:bool=False):
     model.train()
     train_tensor = torch.FloatTensor(dataframe).view(-1, 1)
     criterion = nn.MSELoss()
@@ -65,7 +69,8 @@ def train(model, dataframe, seq_length=300, batch_size=20, epochs=200, lr=1e-3):
             print(f'Epoch {epoch}/{epochs}, Loss {loss.item()}')
 
     print("Обучение завершено.")
-    model.save("trained_model.pth")
+    if save:
+        model.save("trained_model.pth")
 
 def savedModelForecast(dataframe_path = "./dataset.csv", path="./trained_model.pth", column="salary", future=100, seq_length=300):
     df = pd.read_csv(dataframe_path)
@@ -96,11 +101,10 @@ def trainAndForecast(dataframe_path = "./dataset.csv", path="./trained_model.pth
     
     return preds
 
-if __name__ == "__main__":
-    df = pd.read_csv("./dataset.csv")
+def testTrainingModel(dataframe_path="./dataset.csv", column:str='salary', seq_length:int = 200, batch_size:int=20, epochs:int=120, save:bool=False, load:bool=False, training:bool=True):
+    df = pd.read_csv(dataframe_path)
     df.describe()
     df['date'] = pd.to_datetime(df['date'])
-    column = 'meantemp'
     indexedData = df.set_index('date')[column]
     data = indexedData.values
 
@@ -109,13 +113,11 @@ if __name__ == "__main__":
     train_tensor = torch.FloatTensor(train_data).view(-1, 1)
     test_tensor = torch.FloatTensor(test_data).view(-1, 1)
 
-    seq_length = 200
-    batch_size = 20
-    epochs = 120
-
     model = LSTM()
-    model.load("trained_model.pth")
-    train(model, train_data, seq_length, batch_size, epochs, 1e-3)
+    if load:
+        model.load("./trained_model.pth")
+    if training:
+        train(model, train_data, seq_length, batch_size, epochs, 1e-3, save=True)
 
     future = len(test_tensor)
     model.eval()
@@ -127,10 +129,17 @@ if __name__ == "__main__":
     printMetrics(test_data, preds)
 
     x = np.arange(len(data))
-    plt.figure(figsize=(10, 6), dpi=10)
+    plt.figure(figsize=(30, 10), dpi=300)
     plt.plot(x, data, color='blue', label='Original Data')
     plt.plot(x[:len(train_data)], train_tensor.reshape(-1), color='red', label='Train Data')
     plt.plot(x[len(train_data):len(train_data)+len(preds)], preds, color='orange', label='Forecast')
     plt.legend()
     plt.title('LSTM Model Forecast')
-    plt.show()
+    fig_dict = fig_to_dict(plt.gcf())
+    json_str = json.dumps(fig_dict)
+    return json_str
+
+if __name__ == "__main__":
+    data = testTrainingModel(column='meantemp', save=False, load=True, training=False)
+    plt = json_to_fig(data)
+    plt.savefig("test.png", format='png')
