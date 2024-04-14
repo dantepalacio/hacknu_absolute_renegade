@@ -1,11 +1,12 @@
+import json
+
 from langchain.chains.conversation.base import ConversationChain
 from langchain.memory import ConversationBufferMemory
-# from langchain.llms.openai import OpenAI
 from langchain_openai import ChatOpenAI
 
 from utils.load_openai_client import *
-from prompts.prompts import SPEC_PROMPT, CONCLUSION_PROMPT, LEVEL_PROMPT
-
+from prompts.prompts import SPEC_PROMPT, CONCLUSION_PROMPT, LEVEL_PROMPT, SALARY_PROMPT
+from langchain.chains.openai_functions.extraction import create_extraction_chain
 
 llm = ChatOpenAI()
 
@@ -17,7 +18,7 @@ conversation = ConversationChain(
 )
  
 
-for _ in range(15):
+for _ in range(3):
     query = input('Enter query: ')
     # conversation.predict(input=query)
     conversation.invoke({'input':query})
@@ -35,7 +36,20 @@ specialization_response = client.completions.create(
 )
 
 specialization = specialization_response.choices[0].text
-print(f'Итак вы являетесь: {specialization}')
+
+schema = {
+    "properties":{
+        "IT Specialization": {'type':'string'}
+    }
+}
+
+extract_spec = create_extraction_chain(schema,llm)
+
+extracted_sped = extract_spec.run(specialization)
+
+extracted_sped = extracted_sped[0]["IT Specialization"]
+
+print(f'Итак вы являетесь: {extracted_sped}')
 
 
 level_response = client.completions.create(
@@ -46,6 +60,29 @@ level_response = client.completions.create(
 )
 
 level = level_response.choices[0].text
+
 print(f'Ваш уровень: {level}')
 
 
+generate_salary = client.completions.create(
+    model="gpt-3.5-turbo-instruct",
+    prompt=SALARY_PROMPT.format(level=level, spec=specialization),
+    temperature=0.0,
+    max_tokens=256,
+)
+
+salary = generate_salary.choices[0].text
+print(f'Зарплаты : {salary}')
+
+def extract_to_json(salary):
+    lines = salary.split('\n')
+
+    salaries_list = []
+    for line in lines:
+        month, value = line.split(' - ')
+        salaries_list.append({month: int(value)})
+
+    data_dict = {"salaries": salaries_list}
+
+    # Преобразование словаря в JSON
+    json_data = json.dumps(data_dict, ensure_ascii=False, indent=4)
