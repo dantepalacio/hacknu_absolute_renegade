@@ -25,7 +25,8 @@ class LSTM(nn.Module):
         return predictions[-1]
     
     def forecast(self, dataframe, future = 100, sequence_length = 300):
-        if dataframe.shape[0] <= 10:
+        if dataframe.shape[0] <= 1:
+            print("Not enough data")
             return []
         self.eval()
         preds = []
