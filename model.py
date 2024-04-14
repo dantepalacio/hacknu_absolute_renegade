@@ -45,10 +45,11 @@ class LSTM(nn.Module):
         self.load_state_dict(checkpoint['state_dict'])
         print("Model loaded")
 
-def train(model, seq_length=300, batch_size=20, epochs=200):
+def train(model, dataframe, seq_length=300, batch_size=20, epochs=200, lr=1e-3):
     model.train()
+    train_tensor = torch.FloatTensor(dataframe).view(-1, 1)
     criterion = nn.MSELoss()
-    optimizer = torch.optim.RMSprop(model.parameters(), lr=1e-3)
+    optimizer = torch.optim.Adam(model.parameters(), lr=lr)
 
     for epoch in range(epochs):
         for i in range(0, len(train_tensor) - seq_length, batch_size):
@@ -61,7 +62,7 @@ def train(model, seq_length=300, batch_size=20, epochs=200):
             optimizer.step()
 
         if epoch % 10 == 0:
-            print(f'Epoch {epoch}/{epochs}, Loss {loss.item()}, Learning Rate {optimizer.get_lr()[0]}')
+            print(f'Epoch {epoch}/{epochs}, Loss {loss.item()}')
 
     print("Обучение завершено.")
     model.save("trained_model.pth")
@@ -108,24 +109,25 @@ if __name__ == "__main__":
     train_tensor = torch.FloatTensor(train_data).view(-1, 1)
     test_tensor = torch.FloatTensor(test_data).view(-1, 1)
 
-    seq_length = len(train_tensor)//4
+    seq_length = 200
     batch_size = 20
     epochs = 120
 
     model = LSTM()
     model.load("trained_model.pth")
-    #train(model, seq_length, batch_size, epochs)
+    train(model, train_data, seq_length, batch_size, epochs, 1e-3)
 
     future = len(test_tensor)
     model.eval()
 
     preds = model.forecast(train_tensor, future=future, sequence_length=seq_length)
+    print(len(preds), len(test_data))
     
     mse, mae, mape, corr, r2 = getMetrics(test_data, preds)
     printMetrics(test_data, preds)
 
     x = np.arange(len(data))
-    plt.figure(figsize=(10, 6))
+    plt.figure(figsize=(10, 6), dpi=10)
     plt.plot(x, data, color='blue', label='Original Data')
     plt.plot(x[:len(train_data)], train_tensor.reshape(-1), color='red', label='Train Data')
     plt.plot(x[len(train_data):len(train_data)+len(preds)], preds, color='orange', label='Forecast')

@@ -47,11 +47,19 @@ def visualizeDensity(dataframe, column:str='salary'):
     plt.title(f'Density Plot of {column}')
     plt.tight_layout()
     plt.savefig('densityplot.png')
-    
+
+def visualizeHistplot(dataframe, column:str='salary'):
+    plt.figure(figsize=(10, 6))
+    sns.histplot(data=dataframe, x=column)
+    plt.title(f'Hist Plot of {column}')
+    plt.tight_layout()
+    plt.savefig('histplot.png')
+
 if __name__ == "__main__":
     df = pd.read_csv("./dataset.csv")
     #visualizeSingleBoxplot(df, 'humidity')
     #visualizeXYBoxplot(df, 'wind_speed', 'humidity')
     #visualizeScatterplot(df, 'date', 'humidity')
     #visualizeHeatmap(df, ['humidity', 'meantemp', 'wind_speed'])
-    visualizeDensity(df, 'humidity')
+    #visualizeDensity(df, 'humidity')
+    visualizeHistplot(df, 'wind_speed')
