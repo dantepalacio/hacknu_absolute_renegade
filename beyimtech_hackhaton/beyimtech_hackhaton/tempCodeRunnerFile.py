@@ -11,10 +11,12 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 
 from pathlib import Path
-import os
-from dotenv import load_dotenv
+import environ
 
-load_dotenv()
+
+env = environ.Env()
+environ.Env.read_env()
+
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -22,8 +24,6 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
-
-
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = 'django-insecure-#g62-025qt7lcii5ocg!gvfax-wf5=!$o^c&9or24di+sk-mer'
@@ -33,8 +33,7 @@ DEBUG = True
 
 ALLOWED_HOSTS = ["*"]
 
-# ASGI_APPLICATION = 'beyimtech_hackhaton.asgi.application'
-ASGI_APPLICATION = 'beyimtech_hackhaton.asgi.application'
+
 # Application definition
 
 INSTALLED_APPS = [
@@ -43,11 +42,7 @@ INSTALLED_APPS = [
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
-    
-    "daphne",
-    
     'django.contrib.staticfiles',
-
 
     "main",
     "rest_framework",
@@ -86,12 +81,20 @@ WSGI_APPLICATION = 'beyimtech_hackhaton.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
+if env("DATABASE_NAME"):
+    print(True)
+print(False)
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql',  # Используемый движок базы данных
+        'NAME': env("DATABASE_NAME"),               # Имя вашей базы данных
+        'USER': env("DATABASE_USER"),               # Пользователь базы данных
+        'PASSWORD': env("DATABASE_PASS"),       # Пароль для доступа к базе данных
+        'HOST': env("DATABASE_HOST"),                        # Хост базы данных (обычно localhost)
+        'PORT': env("DATABASE_PORT"),                             # Порт базы данных (обычно 5432 для PostgreSQL)
     }
 }
+
 
 # Password validation
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
@@ -127,17 +130,11 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 
-CHANNEL_LAYERS = {
-    'default': {
-        'BACKEND': 'channels.layers.InMemoryChannelLayer',  # Используйте другой бэкэнд для продакшена
-    },
-}
+STATIC_URL = 'static/'
+STATIC_ROOT = BASE_DIR / 'static'
 
-
-STATIC_ROOT = os.path.join(BASE_DIR, "static/")
-STATIC_URL = '/static/'
-MEDIA_ROOT = os.path.join(BASE_DIR, "media/")
 MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
