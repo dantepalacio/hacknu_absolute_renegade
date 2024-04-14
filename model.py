@@ -65,7 +65,7 @@ def train(model, seq_length=300, batch_size=20, epochs=200):
     print("Обучение завершено.")
     model.save("trained_model.pth")
 
-def savedModelForecast(dataframe_path = "./dataset.csv", path="./trained_model.pth", column="price", future=100, seq_length=300):
+def savedModelForecast(dataframe_path = "./dataset.csv", path="./trained_model.pth", column="salary", future=100, seq_length=300):
     df = pd.read_csv(dataframe_path)
     df['date'] = pd.to_datetime(df['date'])
     indexedData = df.set_index('date')[column]
@@ -79,7 +79,7 @@ def savedModelForecast(dataframe_path = "./dataset.csv", path="./trained_model.p
 
     return preds
 
-def trainAndForecast(dataframe_path = "./dataset.csv", path="./trained_model.pth", column="price", future=100, seq_length=300):
+def trainAndForecast(dataframe_path = "./dataset.csv", path="./trained_model.pth", column="salary", future=100, seq_length=300):
     df = pd.read_csv(dataframe_path)
     df['date'] = pd.to_datetime(df['date'])
     indexedData = df.set_index('date')[column]
