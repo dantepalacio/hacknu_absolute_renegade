@@ -6,6 +6,7 @@ from sklearn.model_selection import train_test_split
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
+from metrics import *
 
 class LSTM(nn.Module):
     def __init__(self, input_size=1, hidden_layer_size=100, output_size=1):
@@ -95,7 +96,7 @@ def trainAndForecast(dataframe_path = "./dataset.csv", path="./trained_model.pth
     return preds
 
 if __name__ == "__main__":
-    df = pd.read_csv("./DailyDelhiClimateTrain.csv")
+    df = pd.read_csv("./dataset.csv")
     df.describe()
     df['date'] = pd.to_datetime(df['date'])
     column = 'meantemp'
@@ -119,6 +120,9 @@ if __name__ == "__main__":
     model.eval()
 
     preds = model.forecast(train_tensor, future=future, sequence_length=seq_length)
+    
+    mse, mae, mape, corr, r2 = getMetrics(test_data, preds)
+    printMetrics(test_data, preds)
 
     x = np.arange(len(data))
     plt.figure(figsize=(10, 6))
